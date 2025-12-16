@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { NotificationService } from '../../services/notification.service';
+import { NotificationService } from '../services/notification.service';
+import { Observable } from 'rxjs';
 
 @Component({
     selector: 'app-notification-register',
@@ -7,6 +8,7 @@ import { NotificationService } from '../../services/notification.service';
     styleUrls: ['./notification-register.component.scss']
 })
 export class NotificationRegisterComponent implements OnInit {
+    deviceToken$: Observable<string | null>;
 
     // Data to send to API for testing
     userId: string = 'user-abc-123';
