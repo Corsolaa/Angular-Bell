@@ -1,0 +1,7 @@
+[project]
+name = "my-awesome-app"
+version = "1.0.0"
+description = "Python API for Angular-Bell"
+authors = [
+    {name = "Corsolaa", email = "bruno@oversticht.eu"}
+]

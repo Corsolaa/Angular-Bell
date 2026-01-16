@@ -1,0 +1,59 @@
+openapi: 3.0.2
+info:
+  title: API for Angular-Bell
+  description: APIs for managing entities for the Angular-Bell application.
+  version: 1.0.0
+
+paths:
+  /devices:
+    post:
+      summary: Register a device with an API key
+      security:
+        - JWTAuth: []
+      responses:
+        '201':
+          description: Device registration successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deviceId:
+                    type: string
+
+  /notifications:
+    post:
+      summary: Save a notification for the PWA application
+      security:
+        - JWTAuth: []
+      responses:
+        '201':
+          description: Notification saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notificationId:
+                    type: string
+
+  /devices/{deviceId}/connect:
+    post:
+      summary: Establish a connection with the device
+      security:
+        - JWTAuth: []
+      responses:
+        '201':
+          description: Connection established successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deviceId:
+                    type: string
+
+securitySchemes:
+  JWTAuth:
+    type: http
+    scheme: bearer
