@@ -1,59 +1,109 @@
-openapi: 3.0.2
+openapi: 3.0.0
 info:
   title: API for Angular-Bell
   description: APIs for managing entities for the Angular-Bell application.
   version: 1.0.0
 
+tags:
+  - name: User Devices
+    description: Endpoints for the PWA to manage its own registration.
+  - name: Admin Management
+    description: High-privilege operations for managing all users and devices.
+
 paths:
+  # Devices
   /devices:
-    post:
-      summary: Register a device with an API key
-      security:
-        - JWTAuth: []
+    get:
+      summary: List my devices
+      description: Returns devices belonging to the authenticated Keycloak 'sub'.
+      tags:
+        - User Devices
       responses:
+        # TODO add all response codes
+        '200':
+          description: List of devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+      security:
+        - UserApiKey: []
+    post:
+      summary: Register a device
+      tags:
+        - User Devices
+      security:
+        - UserApiKey: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceRegistration'
+      responses:
+        # TODO add all response codes
         '201':
           description: Device registration successful
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  deviceId:
-                    type: string
+                $ref: '#/components/schemas/Device'
+    # TODO create a PATCH
 
-  /notifications:
-    post:
-      summary: Save a notification for the PWA application
-      security:
-        - JWTAuth: []
-      responses:
-        '201':
-          description: Notification saved successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  notificationId:
-                    type: string
+  # /admin/devices:
+    # copy the /devices but with admin capabilities
+    # like searching with userId, deviceId, limit, name
 
-  /devices/{deviceId}/connect:
-    post:
-      summary: Establish a connection with the device
-      security:
-        - JWTAuth: []
-      responses:
-        '201':
-          description: Connection established successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  deviceId:
-                    type: string
+components:
+  securitySchemes:
+    UserApiKey:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+      description: API Key for standard user access.
+    AdminApiKey:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+      description: API Key with administrative privileges.
+  schemas:
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          description: Get's device type from the User-Agent
+        subscription:
+          type: object
+          description: The raw JSON from the browser's PushManager subscription.
+    DeviceRegistration:
+      type: object
+      required: [deviceName, subscription]
+      properties:
+        deviceName:
+          type: string
+        subscription:
+          type: object
+          description: The raw JSON from the browser's PushManager subscription.
+    
+    # Admin variants
+    AdminDeviceRegistration:
+      allOf:
+        - $ref: '#/components/schemas/DeviceRegistration'
+        - type: object
+          required: [userId]
+          properties:
+            userId:
+              type: string
+        
 
-securitySchemes:
-  JWTAuth:
-    type: http
-    scheme: bearer
+# Global Security
+security:
+  - UserApiKey: []
