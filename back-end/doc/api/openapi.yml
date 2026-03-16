@@ -5,105 +5,136 @@ info:
   version: 1.0.0
 
 tags:
-  - name: User Devices
+  - name: Devices
     description: Endpoints for the PWA to manage its own registration.
-  - name: Admin Management
-    description: High-privilege operations for managing all users and devices.
+  - name: Notify
+    description: Send a notification to a registered device.
 
 paths:
-  # Devices
   /devices:
-    get:
-      summary: List my devices
-      description: Returns devices belonging to the authenticated Keycloak 'sub'.
-      tags:
-        - User Devices
+    post:
+      summary: Register a device
+      tags: [Devices]
+      security: [BearerAuth: []]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Device'
       responses:
-        # TODO add all response codes
         '200':
-          description: List of devices
+          description: Notification sent successfully.
+        '400':
+          description: Bad request. Missing required fields or invalid data.
+        '401':
+          description: Unauthorized. Invalid or missing API key.
+        '500':
+          description: Internal server error. Something went wrong on the server side.
+        '503':
+          description: Service unavailable. The notification service is currently down or overloaded.
+    get:
+      summary: Get all registered devices
+      tags: [Devices]
+      security: [BearerAuth: []]
+      responses:
+        '200':
+          description: Device registration successful
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Device'
-      security:
-        - UserApiKey: []
+        '400':
+          description: Bad request. Missing required fields or invalid data.
+        '401':
+          description: Unauthorized. Invalid or missing API key.
+        '500':
+          description: Internal server error. Something went wrong on the server side.
+        '503':
+          description: Service unavailable. The notification service is currently down or overloaded.
+
+  /notify:
     post:
-      summary: Register a device
-      tags:
-        - User Devices
-      security:
-        - UserApiKey: []
+      summary: Send a notification to a device
+      tags: [Notify]
+      security: [BearerAuth: []]
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DeviceRegistration'
+              type: object
+              required: [title, message]
+              properties:
+                title:
+                  type: string
+                message:
+                  type: string
       responses:
-        # TODO add all response codes
-        '201':
-          description: Device registration successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Device'
-    # TODO create a PATCH
-
-  # /admin/devices:
-    # copy the /devices but with admin capabilities
-    # like searching with userId, deviceId, limit, name
+        '200':
+          description: Notification sent successfully.
+        '400':
+          description: Bad request. Missing required fields or invalid data.
+        '401':
+          description: Unauthorized. Invalid or missing API key.
+        '500':
+          description: Internal server error. Something went wrong on the server side.
+        '503':
+          description: Service unavailable. The notification service is currently down or overloaded.
 
 components:
   securitySchemes:
-    UserApiKey:
-      type: apiKey
-      in: header
-      name: X-API-KEY
-      description: API Key for standard user access.
-    AdminApiKey:
-      type: apiKey
-      in: header
-      name: X-API-KEY
-      description: API Key with administrative privileges.
+    BearerAuth:
+      type: http
+      scheme: bearer
   schemas:
     Device:
       type: object
+      required: [name, subscription]
       properties:
         id:
+          readOnly: true
           type: string
-        userId:
-          type: string
-        name:
-          type: string
+          description: Unique identifier for the device.
+          example: "123e4567-e89b-12d3-a456-426614174000"
         type:
+          readOnly: true
           type: string
           description: Get's device type from the User-Agent
-        subscription:
-          type: object
-          description: The raw JSON from the browser's PushManager subscription.
-    DeviceRegistration:
-      type: object
-      required: [deviceName, subscription]
-      properties:
-        deviceName:
+          example: "mobile"
+        os:
+          readOnly: true
           type: string
+          description: Get's device OS from the User-Agent
+          example: "iOS 14.4"
+        browser:
+          readOnly: true
+          type: string
+          description: Get's device browser from the User-Agent
+          example: "Safari 14.0"
+        name:
+          type: string
+          description: A user-friendly name for the device.
+          example: "John's iPhone"
         subscription:
           type: object
           description: The raw JSON from the browser's PushManager subscription.
-    
-    # Admin variants
-    AdminDeviceRegistration:
-      allOf:
-        - $ref: '#/components/schemas/DeviceRegistration'
-        - type: object
-          required: [userId]
-          properties:
-            userId:
-              type: string
-        
+          example:
+            endpoint: "https://fcm.googleapis.com/fcm/send/abc123"
+            keys:
+              p256dh: "BNc5...example...xyz"
 
-# Global Security
-security:
-  - UserApiKey: []
+    Notification:
+      type: object
+      required: [ message ]
+      properties:
+        title:
+          type: string
+          example: "Hello!"
+          description: The title of the notification.
+        message:
+          type: string
+          example: "You have a new message."
+          description: The body of the notification.
+
+security: [BearerAuth: []]
